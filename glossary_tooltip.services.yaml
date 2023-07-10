@@ -1,0 +1,5 @@
+services:
+  glossary_tooltip.form:
+    class: Drupal\glossary_tooltip\Form\GlossaryTermForm
+    tags:
+      - { name: form }
