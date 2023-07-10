@@ -40,7 +40,7 @@ class GlossaryTermForm extends FormBase {
       '#value' => $this->t('Agregar'),
       '#submit' => ['::submitForm'],
     ];
-
+ 
     return $form;
   }
 
@@ -75,6 +75,8 @@ class GlossaryTermForm extends FormBase {
     $message .= $glossaryList['#markup'];
 
     drupal_set_message($message);
+    $form_state->setRedirect('entity.taxonomy_term.collection', ['taxonomy_vocabulary' => 'glossary']);
+
   }
 
   /**
