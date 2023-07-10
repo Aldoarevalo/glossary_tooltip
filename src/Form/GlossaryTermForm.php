@@ -4,7 +4,8 @@ namespace Drupal\glossary_tooltip\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\taxonomy\Entity\Term;
+use Drupal\Core\Database\Database;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Formulario para agregar términos al glosario.
@@ -21,8 +22,7 @@ class GlossaryTermForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  
-  public function buildForm(array $form, FormStateInterface $form_state): array {
+  public function buildForm(array $form, FormStateInterface $form_state) {
     $form['word'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Palabra'),
@@ -38,13 +38,12 @@ class GlossaryTermForm extends FormBase {
     $form['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Agregar'),
-      '#submit' => ['::submitForm'],
+      '#submit' => [[$this, 'submitForm']],
     ];
 
-    
-  // Agregar la lista de términos del glosario debajo del formulario.
-  $form['glossary_list'] = $this->buildGlossaryList();
- 
+    // Agregar la lista de términos del glosario debajo del formulario.
+    $form['glossary_list'] = $this->buildGlossaryList();
+
     return $form;
   }
 
@@ -59,39 +58,32 @@ class GlossaryTermForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Obtiene los valores del formulario.
-    $word = $form_state->getValue('word');
-    $description = $form_state->getValue('description');
-  
-    // Crea el término de glosario y lo guarda en una entidad de taxonomía.
-    $term = Term::create([
-      'vid' => 'glossary',
-      'name' => $word,
-      'description' => $description,
-    ]);
-    $term->save();
-  
+    // Obtén los valores enviados por el formulario.
+    $values = $form_state->getValues();
+
+    // Crea una conexión a la base de datos.
+    $connection = Database::getConnection();
+
+    // Guarda la palabra en la base de datos.
+    $connection->insert('glossary_table')
+      ->fields([
+        'title' => $values['title'],
+        'word' => $values['word'],
+      ])
+      ->execute();
+
     // Muestra un mensaje de éxito.
-    $message = $this->t('La palabra del glosario ha sido agregada correctamente.');
+    \Drupal::messenger()->addMessage($this->t('La palabra se ha guardado correctamente.'));
 
-    // Obtiene la lista de glosario y la agrega al mensaje.
-    $glossaryList = $this->buildGlossaryList();
-    $message .= $glossaryList['#markup'];
-
-    drupal_set_message($message);
-    //$form_state->setRedirect('entity.taxonomy_term.collection', ['taxonomy_vocabulary' => 'glossary']);
-
-    // Obtener la URL de la página de visualización del glosario.
-  $url = Url::fromRoute('entity.taxonomy_term.collection', ['taxonomy_vocabulary' => 'glossary']);
-
-  // Redirigir a la página de visualización del glosario.
-  $response = new RedirectResponse($url->toString());
-  $response->send();
-
+    // Redirecciona al formulario vacío después de guardar.
+    $form_state->setRedirect('glossary_tooltip.glossary_term_form');
   }
 
   /**
-   * {@inheritdoc}
+   * Construye la lista de términos del glosario.
+   *
+   * @return array
+   *   La lista de términos del glosario.
    */
   public function buildGlossaryList() {
     $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties([
