@@ -1,0 +1,15 @@
+{#
+    Plantilla de tema para el formulario de término del glosario.
+  #}
+  <div class="glossary-term-form">
+    <h2>{{ 'Agregar Término al Glosario'|t }}</h2>
+  
+    {{ form.start_form }}
+  
+    {{ form.word }}
+    {{ form.description }}
+    {{ form.submit }}
+  
+    {{ form.end_form }}
+  </div>
+  
