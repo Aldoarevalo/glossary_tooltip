@@ -1,16 +1,9 @@
 glossary_tooltip.glossary_term_form:
   path: '/admin/structure/glossary-term'
   defaults:
-    _controller: '\Drupal\glossary_tooltip\Controller\GlossaryTooltipController::glossaryTermForm'
-       _form: '\Drupal\glossary_tooltip\Form\GlossaryTermForm'
+  
+   _form: '\Drupal\glossary_tooltip\Form\GlossaryTermForm'
     _title: 'Agregar término al glosario'
   requirements:
     _permission: 'administer glossary tooltip'
 
-glossary_tooltip.page:
-  path: '/glossary-tooltip-page'
-  defaults:
-    _controller: '\Drupal\glossary_tooltip\Controller\GlossaryTooltipController::glossaryTooltipPage'
-    _title: 'Glossary Tooltip Page'
-  requirements:
-    _permission: 'access content'

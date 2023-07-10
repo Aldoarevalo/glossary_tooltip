@@ -21,7 +21,8 @@ class GlossaryTermForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
+  
+  public function buildForm(array $form, FormStateInterface $form_state): array {
     $form['word'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Palabra'),
@@ -56,17 +57,17 @@ class GlossaryTermForm extends FormBase {
     // Obtiene los valores del formulario.
     $word = $form_state->getValue('word');
     $description = $form_state->getValue('description');
-
+  
     // Crea el término de glosario y lo guarda en una entidad de taxonomía.
-    $term = Term::create([
+    $term = \Drupal\taxonomy\Entity\Term::create([
       'vid' => 'glossary',
       'name' => $word,
       'description' => $description,
     ]);
     $term->save();
-
+  
     // Muestra un mensaje de éxito.
-    drupal_set_message($this->t('La palabra del glosario ha sido agregada correctamente.'), 'status');
+    \Drupal::messenger()->addStatus($this->t('La palabra del glosario ha sido agregada correctamente.'));
   }
 
 }
