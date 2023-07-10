@@ -56,7 +56,7 @@ class GlossaryTermForm extends FormBase {
     // Obtiene los valores del formulario.
     $word = $form_state->getValue('word');
     $description = $form_state->getValue('description');
-  
+
     // Crea el término de glosario y lo guarda en una entidad de taxonomía.
     $term = Term::create([
       'vid' => 'glossary',
@@ -64,9 +64,9 @@ class GlossaryTermForm extends FormBase {
       'description' => $description,
     ]);
     $term->save();
-  
+
     // Muestra un mensaje de éxito.
-    drupal_set_message($this->t('La palabra del glosario ha sido agregada correctamente.'), 'status');
+    $this->messenger()->addStatus($this->t('La palabra del glosario ha sido agregada correctamente.'));
   }
 
 }
