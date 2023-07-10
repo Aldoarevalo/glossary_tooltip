@@ -66,7 +66,7 @@ class GlossaryTermForm extends FormBase {
     $term->save();
 
     // Muestra un mensaje de éxito.
-    $this->messenger()->addStatus($this->t('La palabra del glosario ha sido agregada correctamente.'));
+    drupal_set_message($this->t('La palabra del glosario ha sido agregada correctamente.'), 'status');
   }
 
 }
