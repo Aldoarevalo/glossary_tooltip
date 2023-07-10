@@ -37,7 +37,7 @@ class GlossaryTermForm extends FormBase {
 
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Agregar'),
+      '#value' => $this->t('Grabar'),
       '#submit' => [[$this, 'submitForm']],
     ];
 
@@ -75,7 +75,7 @@ class GlossaryTermForm extends FormBase {
     // Muestra un mensaje de éxito.
     \Drupal::messenger()->addMessage($this->t('La palabra se ha guardado correctamente.'));
 
-    // Redirecciona al formulario vacío después de guardar.
+    // /Redirecciona al formulario vacío después de guardar.
     $form_state->setRedirect('glossary_tooltip.glossary_term_form');
   }
 
