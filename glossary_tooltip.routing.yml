@@ -2,6 +2,7 @@ glossary_tooltip.glossary_term_form:
   path: '/admin/structure/glossary-term'
   defaults:
     _controller: '\Drupal\glossary_tooltip\Controller\GlossaryTermFormController::showForm'
+    _entity_list: 'taxonomy_term'
     _title: 'Agregar término al glosario'
   requirements:
     _permission: 'administer site configuration'

@@ -40,6 +40,10 @@ class GlossaryTermForm extends FormBase {
       '#value' => $this->t('Agregar'),
       '#submit' => ['::submitForm'],
     ];
+
+    
+  // Agregar la lista de términos del glosario debajo del formulario.
+  $form['glossary_list'] = $this->buildGlossaryList();
  
     return $form;
   }
@@ -75,7 +79,14 @@ class GlossaryTermForm extends FormBase {
     $message .= $glossaryList['#markup'];
 
     drupal_set_message($message);
-    $form_state->setRedirect('entity.taxonomy_term.collection', ['taxonomy_vocabulary' => 'glossary']);
+    //$form_state->setRedirect('entity.taxonomy_term.collection', ['taxonomy_vocabulary' => 'glossary']);
+
+    // Obtener la URL de la página de visualización del glosario.
+  $url = Url::fromRoute('entity.taxonomy_term.collection', ['taxonomy_vocabulary' => 'glossary']);
+
+  // Redirigir a la página de visualización del glosario.
+  $response = new RedirectResponse($url->toString());
+  $response->send();
 
   }
 
