@@ -40,6 +40,8 @@ class GlossaryTermForm extends FormBase {
       '#value' => $this->t('Agregar'),
     ];
 
+    $form['glossary_list'] = $this->buildGlossaryList();
+
     return $form;
   }
 
@@ -59,7 +61,7 @@ class GlossaryTermForm extends FormBase {
     $description = $form_state->getValue('description');
   
     // Crea el término de glosario y lo guarda en una entidad de taxonomía.
-    $term = \Drupal\taxonomy\Entity\Term::create([
+    $term = Term::create([
       'vid' => 'glossary',
       'name' => $word,
       'description' => $description,
@@ -68,6 +70,29 @@ class GlossaryTermForm extends FormBase {
   
     // Muestra un mensaje de éxito.
     \Drupal::messenger()->addStatus($this->t('La palabra del glosario ha sido agregada correctamente.'));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildGlossaryList() {
+    $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties([
+      'vid' => 'glossary',
+      'status' => 1,
+    ]);
+
+    $content = '<ul>';
+    foreach ($terms as $term) {
+      $word = $term->getName();
+      $description = $term->getDescription();
+
+      $content .= '<li>' . $word . ': ' . $description . '</li>';
+    }
+    $content .= '</ul>';
+
+    return [
+      '#markup' => $content,
+    ];
   }
 
 }
