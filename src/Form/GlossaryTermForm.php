@@ -71,7 +71,7 @@ class GlossaryTermForm extends FormBase {
         'word' => $values['word'],
       ])
       ->execute();
-
+      var_dump($values);
     // Muestra un mensaje de éxito.
     \Drupal::messenger()->addMessage($this->t('La palabra se ha guardado correctamente.'));
 
