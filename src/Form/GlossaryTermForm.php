@@ -38,9 +38,8 @@ class GlossaryTermForm extends FormBase {
     $form['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Agregar'),
+      '#submit' => ['::submitForm'],
     ];
-
-    $form['glossary_list'] = $this->buildGlossaryList();
 
     return $form;
   }
@@ -69,7 +68,13 @@ class GlossaryTermForm extends FormBase {
     $term->save();
   
     // Muestra un mensaje de éxito.
-    \Drupal::messenger()->addStatus($this->t('La palabra del glosario ha sido agregada correctamente.'));
+    $message = $this->t('La palabra del glosario ha sido agregada correctamente.');
+
+    // Obtiene la lista de glosario y la agrega al mensaje.
+    $glossaryList = $this->buildGlossaryList();
+    $message .= $glossaryList['#markup'];
+
+    drupal_set_message($message);
   }
 
   /**
