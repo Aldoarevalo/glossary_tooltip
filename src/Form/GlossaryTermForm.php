@@ -1,108 +1,290 @@
 <?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $word = $_POST['word'];
+  $descripcion = $_POST['descripcion'];
 
-namespace Drupal\glossary_tooltip\Form;
+  // Valida los datos recibidos si es necesario
 
-use Drupal\Core\Form\FormBase;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Database\Database;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
+  // Realiza la operación de guardado en la base de datos
+  $servername = "localhost";
+  $database = "drupal";
+  $username = "root";
+  $password = "";
 
-/**
- * Formulario para agregar términos al glosario.
- */
-class GlossaryTermForm extends FormBase {
+  $conn = mysqli_connect($servername, $username, $password, $database);
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getFormId() {
-    return 'glossary_term_form';
+  if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function buildForm(array $form, FormStateInterface $form_state) {
-    $form['word'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Palabra'),
-      '#required' => TRUE,
-    ];
+  // Verifica si la palabra ya existe en glossary_table
+  $checkSql = "SELECT id FROM glossary_table WHERE word = '$word'";
+  $checkResult = mysqli_query($conn, $checkSql);
 
-    $form['description'] = [
-      '#type' => 'textarea',
-      '#title' => $this->t('Descripción'),
-      '#required' => TRUE,
-    ];
+  if (mysqli_num_rows($checkResult) > 0) {
+    // La palabra ya existe, inserta solo la descripción en glossary_table_detalle
+    $row = mysqli_fetch_assoc($checkResult);
+    $glossaryId = $row['id'];
 
-    $form['submit'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('Grabar'),
-      '#submit' => [[$this, 'submitForm']],
-    ];
+    $detalleSql = "INSERT INTO glossary_table_detalle (glossary_id, descripcion) VALUES ('$glossaryId', '$descripcion')";
 
-    // Agregar la lista de términos del glosario debajo del formulario.
-    $form['glossary_list'] = $this->buildGlossaryList();
-
-    return $form;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
-    // Implementa la lógica de validación aquí si es necesario.
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Obtén los valores enviados por el formulario.
-    $values = $form_state->getValues();
-
-    // Crea una conexión a la base de datos.
-    $connection = Database::getConnection();
-
-    // Guarda la palabra en la base de datos.
-    $connection->insert('glossary_table')
-      ->fields([
-        'title' => $values['title'],
-        'word' => $values['word'],
-      ])
-      ->execute();
-      var_dump($values);
-    // Muestra un mensaje de éxito.
-    \Drupal::messenger()->addMessage($this->t('La palabra se ha guardado correctamente.'));
-
-    // /Redirecciona al formulario vacío después de guardar.
-    $form_state->setRedirect('glossary_tooltip.glossary_term_form');
-  }
-
-  /**
-   * Construye la lista de términos del glosario.
-   *
-   * @return array
-   *   La lista de términos del glosario.
-   */
-  public function buildGlossaryList() {
-    $terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadByProperties([
-      'vid' => 'glossary',
-      'status' => 1,
-    ]);
-
-    $content = '<ul>';
-    foreach ($terms as $term) {
-      $word = $term->getName();
-      $description = $term->getDescription();
-
-      $content .= '<li>' . $word . ': ' . $description . '</li>';
+    if (mysqli_query($conn, $detalleSql)) {
+      echo "La descripción se ha guardado correctamente";
+    } else {
+      echo "Error al guardar la descripción: " . mysqli_error($conn);
     }
-    $content .= '</ul>';
+  } else {
+    // La palabra no existe, inserta la palabra y la descripción en glossary_table y glossary_table_detalle
+    $sql = "INSERT INTO glossary_table (word) VALUES ('$word')";
 
-    return [
-      '#markup' => $content,
-    ];
+    if (mysqli_query($conn, $sql)) {
+      $glossaryId = mysqli_insert_id($conn);
+
+      $detalleSql = "INSERT INTO glossary_table_detalle (glossary_id, descripcion) VALUES ('$glossaryId', '$descripcion')";
+
+      if (mysqli_query($conn, $detalleSql)) {
+        echo "La palabra y la descripción se han guardado correctamente";
+      } else {
+        echo "Error al guardar la descripción: " . mysqli_error($conn);
+      }
+    } else {
+      echo "Error al guardar la palabra: " . mysqli_error($conn);
+    }
   }
 
+  mysqli_close($conn);
 }
+?>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Glossary Term Form</title>
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+  }
+
+  h1 {
+    color: #333;
+    text-align: center;
+    margin-top: 30px;
+  }
+
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    font-weight: bold;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .form-group input[type="submit"] {
+    background-color: #4CAF50;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .glossary-list {
+    margin-top: 40px;
+  }
+
+  .glossary-list table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .glossary-list th,
+  .glossary-list td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .glossary-list th {
+    background-color: #4CAF50;
+    color: #fff;
+  }
+
+  .menu {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+  }
+
+  .menu a {
+    color: #fff;
+    text-decoration: none;
+    margin-right: 10px;
+  }
+
+  .term-details {
+    display: none;
+    padding-left: 20px;
+  }
+
+  .term-details li {
+    margin-bottom: 10px;
+  }
+
+  .highlight {
+    background-color: green;
+    color: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+</style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#glossary-form').submit(function(event) {
+        event.preventDefault();
+        var word = $('#word').val();
+        var descripcion = $('#descripcion').val();
+
+        // Resalta las palabras ingresadas en los campos de texto
+        var content = $('#content').html();
+        var pattern = new RegExp('\\b' + word + '\\b', 'gi');
+        var replacement = "<span class='highlight'>" + word + "</span>";
+        content = content.replace(pattern, replacement);
+        $('#content').html(content);
+
+        // Realiza la petición AJAX para guardar los datos
+        $.ajax({
+          url: $(this).attr('action'),
+          method: $(this).attr('method'),
+          data: $(this).serialize(),
+          success: function(response) {
+            alert(response);
+          },
+          error: function(xhr, status, error) {
+            console.log(xhr.responseText);
+          }
+        });
+
+        // Limpia los campos de texto después de guardar los datos
+        $('#word').val('');
+        $('#descripcion').val('');
+      });
+
+      $('.glossary-list').on('click', '.show-details', function() {
+        var details = $(this).next('.term-details');
+        if (details.is(':visible')) {
+          details.hide();
+          $(this).text('Mostrar Detalles');
+        } else {
+          details.show();
+          $(this).text('Ocultar Detalles');
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Glossary Term Form</h1>
+    <form id="glossary-form" method="post" action="">
+      <div class="form-group">
+        <label for="word">Palabra:</label>
+        <input type="text" id="word" name="word" required>
+      </div>
+
+      <div class="form-group">
+        <label for="descripcion">Descripción:</label>
+        <textarea id="descripcion" name="descripcion" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <input type="submit" value="Grabar">
+      </div>
+    </form>
+
+    <div id="content">
+      <!-- Coloca aquí el contenido donde se realizará el escaneo y reemplazo de palabras -->
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed commodo felis vel lorem convallis tincidunt. Nullam at sollicitudin nulla, ac sagittis ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Proin elementum mi eget velit aliquam, eu tempus nibh posuere. Mauris luctus, nisi in commodo bibendum, metus turpis interdum purus, id consectetur ante lacus non tortor.</p>
+    </div>
+
+    <div class="glossary-list">
+      <?php
+        // Obtén los términos del glosario de la base de datos
+        $servername = "localhost";
+        $database = "drupal";
+        $username = "root";
+        $password = "";
+
+        $conn = mysqli_connect($servername, $username, $password, $database);
+
+        if (!$conn) {
+          die("Connection failed: " . mysqli_connect_error());
+        }
+
+        $sql = "SELECT * FROM glossary_table";
+        $result = mysqli_query($conn, $sql);
+
+        // Construye un array con los términos y descripciones
+        $terms = array();
+        while ($row = mysqli_fetch_assoc($result)) {
+          $termId = $row['id'];
+          $term = $row['word'];
+
+          // Obtiene la descripción asociada a la palabra
+          $detalleSql = "SELECT descripcion FROM glossary_table_detalle WHERE glossary_id = '$termId'";
+          $detalleResult = mysqli_query($conn, $detalleSql);
+          $descriptions = array();
+          while ($detalleRow = mysqli_fetch_assoc($detalleResult)) {
+            $descriptions[] = $detalleRow['descripcion'];
+          }
+
+          $terms[] = array(
+            'term' => $term,
+            'descriptions' => $descriptions
+          );
+        }
+
+        mysqli_close($conn);
+
+        // Imprime la lista de términos y descripciones
+        if (!empty($terms)) {
+          echo "<table>";
+          echo "<tr><th>Palabra</th><th>Descripción</th></tr>";
+          foreach ($terms as $term) {
+            echo "<tr>";
+            echo "<td><span class='highlight'>" . $term['term'] . "</span></td>";
+            echo "<td>";
+            if (!empty($term['descriptions'])) {
+              echo "<button class='show-details'>Mostrar Detalles</button>";
+              echo "<ul class='term-details'>";
+              foreach ($term['descriptions'] as $description) {
+                echo "<li>" . $description . "</li>";
+              }
+              echo "</ul>";
+            }
+            echo "</td>";
+            echo "</tr>";
+          }
+          echo "</table>";
+        } else {
+          echo "No hay términos disponibles";
+        }
+      ?>
+    </div>
+  </div>
+</body>
+</html>

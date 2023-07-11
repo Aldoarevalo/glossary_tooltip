@@ -74,6 +74,16 @@ class GlossaryTermFormController extends ControllerBase {
     return new Response($renderedForm);
   }
 
+  public function showForm1() {
+    $form = $this->formBuilder->getForm('\Drupal\glossary_tooltip\Form\submit');
+
+    // Render the form.
+    $renderedForm = \Drupal::service('renderer')->render($form);
+
+    return new Response($renderedForm);
+  }
+ 
+
   /**
    * Submits the glossary term form.
    *

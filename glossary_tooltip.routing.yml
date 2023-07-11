@@ -1,8 +1,14 @@
 glossary_tooltip.glossary_term_form:
   path: '/admin/structure/glossary-term'
   defaults:
-    _controller: '\Drupal\glossary_tooltip\Controller\GlossaryTermFormController::showForm'
-    _entity_list: 'taxonomy_term'
     _title: 'Agregar término al glosario'
+    _form: '\Drupal\glossary_tooltip\Form\GlossaryTermForm'
+  requirements:
+    _permission: 'administer site configuration'
+
+glossary_tooltip.submit_form:
+  path: '/admin/structure/submit.php'
+  defaults:
+    _controller: '\Drupal\glossary_tooltip\Controller\GlossaryTermFormController::submitForm'
   requirements:
     _permission: 'administer site configuration'
